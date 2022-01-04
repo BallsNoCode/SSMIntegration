@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="utf-8" />
+		<title>更新球员</title>
+		<script type="text/javascript" src="/js/jquery-1.11.1.js"></script>
+		<script type="text/javascript" src="/js/bootstrap.js"></script>
+		<link rel="stylesheet" type="text/css" href="/css/bootstrap.css"/>
+		<link rel="stylesheet" type="text/css" href="/css/style.css"/>
+		<style>
+			label span{color: #ff0000; padding-right: 5px;}
+		</style>
+	</head>
+
+	<body>
+		<h2>更新球队</h2>
+		<form id="myForm" class="form-horizontal">
+			<!--springmvc的restful风格处理非get post方式请求必备参数-->
+			<!--<input name="_method"  type="hidden" value="PUT"/>-->
+			<div class="form-group">
+				<label class="col-sm-1 control-label"><span>*</span>球员id</label>
+				<div class="col-sm-9">
+					<input name="playerId"  type="text" disabled/>
+				</div>
+			</div>
+			<div class="form-group">
+				<label class="col-sm-1 control-label"><span>*</span>球员名称</label>
+				<div class="col-sm-9">
+					<input required="required" name="playerName" class="form-control" />
+				</div>
+			</div>
+			<div class="form-group">
+				<label class="col-sm-1 control-label">球员号码</label>
+				<div class="col-sm-9">
+					<input name="playerNum" class="form-control" />
+				</div>
+			</div>
+			<div class="form-group">
+				<label class="col-sm-1 control-label">球员位置</label>
+				<div class="col-sm-9">
+					<input name="location" class="form-control" />
+				</div>
+			</div>
+			<div class="form-group">
+				<label class="col-sm-1 control-label">出生日期</label>
+				<div class="col-sm-2">
+					<input name="birthday" class="form-control" type="date"/>
+				</div>
+			</div>
+			<div class="form-group">
+				<label class="col-sm-1 control-label">所属地区</label>
+				<div class="col-sm-9">
+					<input name="nationality" class="form-control" />
+				</div>
+			</div>
+
+			<div class="form-group">
+				<label class="col-sm-1 control-label"></label>
+				<div class="col-sm-9">
+					<button id="btnUpdate" type="button" class="btn btn-sm btn-info">提&nbsp;交</button>
+					<button type="reset"  class="btn btn-sm btn-warning">重&nbsp;置</button>
+				</div>
+			</div>
+		</form>		
+	</body>
+</html>
+<script>
+	String.prototype.GetValue= function(para) {
+		let reg = new RegExp("(^|&)"+ para +"=([^&]*)(&|$)");
+		let r = this.substr(this.indexOf("\?")+1).match(reg);
+		if (r!=null) return unescape(r[2]); return null;
+	}
+	$(function () {
+		//根据地址获取teamId,如果null则执行增加，否则执行更新
+		let url = document.location.toString();//获取URL
+		let playerId=url.GetValue("playerId");
+		let pageNum=url.GetValue("pageNum");
+		let pageSize=url.GetValue("pageSize");
+		//alert(teamId);
+		//根据id查询要更新的球队信息并回显到页面
+		queryById(playerId);
+		//提交按钮的单击事件--实现真正的更新
+		$("#btnUpdate").click(function () {
+			$.ajax({
+				type: "POST",//这里必须写POST
+				url: "/player/"+playerId,
+				data: $("#myForm").serialize()+"&_method=PUT",
+				dataType:"json",
+				success: function(vo){
+					if(vo.code==200) {
+						window.location.href = "/pages/player/list.html?pageNum="+pageNum+"&pageSize="+pageSize;
+					}else{
+						alert("更新失败！"+vo.msg);
+					}
+				}
+			});
+		});
+	});
+	function queryById(playerId) {
+		$.ajax({
+			type: "GET",
+			url: "/player/"+playerId, //RESTful风格的API定义
+			data: "",
+			success: function (vo) {
+				let obj=vo.obj;
+				let playerId=obj.playerId;
+				let playerName=obj.playerName;
+				let playerNum=obj.playerNum;
+				let location=obj.location;
+				let birthday=obj.birthday;
+				let nationality=obj.nationality;
+				$("input[name='playerId']").val(playerId);
+				$("input[name='playerName']").val(playerName);
+				$("input[name='playerNum']").val(playerNum);
+				$("input[name='location']").val(location);
+				$("input[name='birthday']").val(birthday);
+				$("input[name='nationality']").val(nationality);
+			}
+		});
+	}
+
+</script>

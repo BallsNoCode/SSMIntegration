@@ -1,0 +1,228 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="utf-8" />
+		<title>球员列表</title>
+		<script type="text/javascript" src="/js/jquery-1.11.1.js"></script>
+    	<script type="text/javascript" src="/js/bootstrap.js" ></script>
+		<link rel="stylesheet" type="text/css" href="/css/bootstrap.css"/>
+		<link rel="stylesheet" type="text/css" href="/css/style.css"/>
+		<style>
+			span{
+				color: #1EABFF;
+				padding: 0 5px;
+			}
+		</style>
+	</head>
+	<body>
+		<form id="myForm" class="form-horizontal">
+			<h2>NBA球员列表</h2>
+			<div class="searchDiv">
+				<button class="btn btn-danger">批量删除</button>
+				<a href="/pages/team/add.html" class="btn btn-success">添加</a>
+				球员名称:<input name="playerName" placeholder="球员名称"/>
+				球员号码:<input name="playerNum" placeholder="球员号码"/>
+				所属地区:<input name="nationality" placeholder="所属地区"/>
+				出生日期:<input name="beginDate" type="date"/>-<input name="endDate" type="date"/>
+				位置:<select name="location">
+					<option value="-1">请选择位置</option>
+					<option value="0">前锋</option>
+					<option value="1">后卫</option>
+				</select>
+				<button type="button" onclick="loadData()" class="btn btn-info">查询</button>
+				<button type="reset" class="btn btn-warning">重置</button>
+			</div>
+			<table class="table table-bordered table-striped">
+				<thead>
+					<tr>
+						<th>全选<input type="checkbox" id="all"/></th>
+						<th>球员ID</th>
+						<th>球员名称</th>
+						<th>球员号码</th>
+						<th>位置</th>
+						<th>出生日期</th>
+						<th>所属地区</th>
+						<th>薪水</th>
+						<th>所属队伍</th>
+						<th>操作</th>
+					</tr>
+				</thead>
+				<tbody id="tboby">
+					<tr>
+						<td><input type="checkbox" name="one"/></td>
+						<td>1</td>
+						<td>库里</td>
+						<td>30</td>
+						<td>后卫</td>
+						<td>1988-03-14</td>
+						<td>USA</td>
+						<td>4301</td>
+						<td>勇士</td>
+						<td>
+							<button class="btn btn-sm btn-danger">删除</button>
+							<button class="btn btn-sm btn-info">更新</button>
+						</td>
+					</tr>
+				</tbody>
+			</table>
+			<!--分页部分-->
+			<div class="form-group">
+				<div class="col-sm-3" style="text-align: right">
+					<ul class="pagination" style="margin: 0;">
+						<li name="pageLi" id="firstPage"><a href="javascript:void(0)">首页</a></li>
+						<li name="pageLi" id="prePage"><a href="javascript:void(0)">上一页</a></li>
+						<li name="pageLi" id="nextPage"><a href="javascript:void(0)">下一页</a></li>
+						<li name="pageLi" id="lastPage"><a href="javascript:void(0)">末页</a></li>
+					</ul>
+				</div>
+				<label class="control-label col-sm-3" style="text-align: right" >
+					共<span id="total"></span>条数据，共<span id="pages"></span>页
+				</label>
+				<label class="control-label col-sm-1" style="text-align: right" >
+					每页显示
+				</label>
+				<div   class="col-sm-1" style="text-align: right; padding:0;margin: 0" >
+					<select class="form-control" name="pageSize">
+						<option value="5">5</option>
+						<option value="10">10</option>
+						<option value="15">15</option>
+					</select>
+				</div>
+				<label class="control-label col-sm-1" style="text-align: left;width: 87px;padding: 8px 5px;" >
+					条数据
+				</label>
+				<label class="control-label col-sm-1" style="text-align: right" >
+					跳转到第
+				</label>
+				<div   class="col-sm-1" style="text-align: right; padding:0;margin: 0" ><input class="form-control" name="pageNum" value="1" /></div>
+				<label class="control-label col-sm-1" style="text-align: left">页</label>
+			</div>
+		</form>
+	</body>
+
+</html>
+<script>
+	//页面加载完毕之后发送异步请求
+	$(function(){
+		loadData();
+		$("ul[class='pagination']>li").click(function(){
+			if(($(this).attr("class"))=='disabled')
+				return;
+			let num=$(this).attr("name");
+			$("input[name='pageNum']").val(num);
+			loadData();
+		});
+	});
+	//填充分页信息
+	function fillPageData(pageInfo) {
+		//填充信息
+		$("#total").html(pageInfo.total);
+		$("#pages").html(pageInfo.pages);
+		$("input[name='pageNum']").val(pageInfo.pageNum);
+		$("select[name='pageSize']").val(pageInfo.pageSize);
+		//设置按钮的属性值和样式
+		$("#firstPage").attr("name",1);
+		$("#prePage").attr("name",pageInfo.prePage);
+		$("#nextPage").attr("name",pageInfo.nextPage);
+		$("#lastPage").attr("name",pageInfo.pages);
+		$("#firstPage").removeClass("disabled");
+		$("#prePage").removeClass("disabled");
+		$("#nextPage").removeClass("disabled");
+		$("#lastPage").removeClass("disabled");
+		if(pageInfo.isFirstPage){//如果是第一页：上一页和首页禁用
+			$("#firstPage").addClass("disabled");
+			$("#prePage").addClass("disabled");
+		}
+		if(pageInfo.isLastPage){//如果已经是最后一页：下一页和末页禁用
+			$("#nextPage").addClass("disabled");
+			$("#lastPage").addClass("disabled");
+		}
+	}
+	//更新按钮
+	function updatePlayer(id) {
+		let pageNum=$("input[name='pageNum']").val();
+		let pageSize=$("select[name='pageSize']").val();
+		window.location.href="/pages/player/update.html?playerId="+id+"&pageNum="+pageNum+"&pageSize="+pageSize;
+	}
+	//删除按钮
+	function deletePlayer(id) {
+		if(confirm("确定要删除吗?")) {
+			//发起异步请求
+			$.ajax({
+				type: "POST",
+				url: "/player/" + id, //RESTful风格的API定义
+				data: "_method=DELETE",
+				success: function (vo) {
+					if(vo.code==200){
+						loadData();
+					}else{
+						alert("删除失败！"+vo.msg);
+					}
+				}
+			});
+		}
+	}
+	String.prototype.GetValue= function(para) {
+		let reg = new RegExp("(^|&)"+ para +"=([^&]*)(&|$)");
+		let r = this.substr(this.indexOf("\?")+1).match(reg);
+		if (r!=null) return unescape(r[2]); return null;
+	}
+	//加载数据
+	function loadData(){
+		let url = document.location.toString();
+		let pageNum=url.GetValue("pageNum");
+		let pageSize=url.GetValue("pageSize");
+		if(pageNum!=null&&$("input[name='pageNum']").val()!=null){
+			$("input[name='pageNum']").val(pageNum);
+		}
+		if(pageSize!=null&&$("select[name='pageSize']").val()!=null){
+			$("select[name='pageSize']").val(pageSize);
+		}
+		//alert($("#myForm").serialize())
+		$.ajax({
+			type: "GET",
+			url: "/player/list",
+			data: $("#myForm").serialize(),//主要是分页和多条件参数数据
+			dataType:"json",
+			success: function(vo){
+				// alert( "Data Saved: " + vo );
+				let list=vo.pageInfo.list;
+				let str="";
+				for(let i=0;i<list.length;i++){
+					let obj=list[i];
+					let playerId=obj.playerId;
+					let playerName=obj.playerName==null?'':obj.playerName;
+					let playerNum=obj.playerNum==null?'':obj.playerNum;
+					let location=obj.location=='0'?"前锋":"后卫";
+					let time=obj.birthday==null?'':obj.birthday.split('-')[0];
+					let nationality =obj.nationality==null?'':obj.nationality;
+					let salary =obj.salary==null?'':obj.salary;
+					let teamId =obj.teamId==null?'':obj.teamId;
+					let isDel=obj.isDel;
+					let btnStr="";
+					if(isDel==0){
+						btnStr='<button type="button" name="deleteBtn" class="btn btn-sm btn-danger" onclick="deletePlayer('+playerId+')">删除</button>&nbsp;' +
+								'<button type="button" name="updateBtn" class="btn btn-sm btn-info" onclick="updatePlayer('+playerId+')">更新</button>';
+					}else{
+						btnStr='<button name="deleteBtn" class="btn btn-sm btn-danger disabled">已删除</button>';
+					}
+					str+='<tr>' +
+							'            <td><input type="checkbox"/></td>' +
+							'            <td>'+playerId+'</td>' +
+							'            <td>'+playerName+'</td>' +
+							'            <td>'+playerNum+'</td>' +
+							'            <td>'+nationality+'</td>' +
+							'            <td>'+time+'</td>' +
+							'            <td>'+location+'</td>' +
+							'            <td>'+salary+'</td>' +
+							'            <td>'+teamId+'</td>' +
+							'            <td>'+btnStr+'</td>' +
+							'</tr>'
+				}
+				$("#tboby").html(str);
+				//填充分页数据
+				fillPageData(vo.pageInfo);
+			}
+		});
+	}
+</script>

@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8"/>
+    <title>添加球员</title>
+    <script type="text/javascript" src="/js/jquery-1.11.1.js"></script>
+    <script type="text/javascript" src="/js/bootstrap.js"></script>
+    <link rel="stylesheet" type="text/css" href="/css/bootstrap.css"/>
+    <link rel="stylesheet" type="text/css" href="/css/style.css"/>
+    <style>
+        label span {
+            color: #ff0000;
+            padding-right: 5px;
+        }
+    </style>
+</head>
+
+<body>
+<h2>添加球员</h2>
+<form id="myForm" class="form-horizontal" method="post" action="/team">
+    <div class="form-group">
+        <label class="col-sm-1 control-label"><span>*</span>球员</label>
+        <div class="col-sm-9">
+            <input required="required" name="PlayerName" class="form-control" placeholder="请输入球员名称"/>
+        </div>
+    </div>
+    <div class="form-group">
+        <label class="col-sm-1 control-label">球员号码</label>
+        <div class="col-sm-9">
+            <input name="playerNum" class="form-control" placeholder="请输入球员号码"/>
+        </div>
+    </div>
+    <div class="form-group">
+        <label class="col-sm-1 control-label">位置</label>
+        <div class="col-sm-2">
+            <input name="location" class="form-control" placeholder="请输入球员位置"/>
+        </div>
+    </div>
+
+    <div class="form-group">
+        <label class="col-sm-1 control-label">出生日期</label>
+        <div class="col-sm-9">
+            <input name="birthday" class="form-control" type="date"/>
+        </div>
+    </div>
+    <div class="form-group">
+        <label class="col-sm-1 control-label">所属地区</label>
+        <div class="col-sm-2">
+            <input name="nationality" class="form-control" placeholder="请输入所属地区"/>
+        </div>
+    </div>
+    <div class="form-group">
+        <label class="col-sm-1 control-label">所属球队</label>
+        <div class="col-sm-9">
+            <input name="teamId" class="form-control" placeholder="请输入所属球队"/>
+        </div>
+    </div>
+    <div class="form-group">
+        <label class="col-sm-1 control-label"></label>
+        <div class="col-sm-9">
+            <button id="btnAdd" type="button" class="btn btn-sm btn-info">提&nbsp;交</button>
+            <button type="reset" class="btn btn-sm btn-warning">重&nbsp;置</button>
+        </div>
+    </div>
+</form>
+</body>
+</html>
+<script>
+    $(function () {
+        //提交按钮的单击事件
+        $("#btnAdd").click(function () {
+            $.ajax({
+                type: "POST",
+                url: "/player/",
+                data: $("#myForm").serialize(),
+                dataType: "json",
+                success: function (vo) {
+                    if (vo.code == 200) {
+                        window.location.href = "/pages/player/list.html";
+                    } else {
+                        alert("添加失败！" + vo.msg);
+                    }
+                }
+            });
+        });
+    });
+</script>
